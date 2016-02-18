@@ -1,5 +1,3 @@
-// Refactoring in process based on CJ's advice. See especially the very bottom.
-
 var fs = require('fs')
 
 var sourceFile = './output/taxa.json'
@@ -10,8 +8,8 @@ fs.readFile(sourceFile, 'utf-8', function(err, data) {
 
   var chordataTree = []
   var organismsArray = JSON.parse(data)
-  var numberOfOrganismsToProcess = organismsArray.length
-  var numberOfOrganismsToProcess = 100
+  // var numberOfOrganismsToProcess = organismsArray.length
+  var numberOfOrganismsToProcess = 13
 
   // organismsArray.forEach(function(organism, i) {
   for (var i=0; i<numberOfOrganismsToProcess; i++) {
@@ -88,13 +86,8 @@ fs.readFile(sourceFile, 'utf-8', function(err, data) {
 
   } // end for loop
 
-  var root = {
-    taxonRank: 'phylum',
-    name: 'chordates',
-    children: chordataTree
-  }
   // After the tree is built, write it to a file
-  fs.writeFile('./output/tree-' + numberOfOrganismsToProcess + '.json', JSON.stringify(root))
+  fs.writeFile('./output/tree-' + numberOfOrganismsToProcess + '.json', JSON.stringify(chordataTree))
 })
 
 
@@ -103,22 +96,19 @@ fs.readFile(sourceFile, 'utf-8', function(err, data) {
 /****************************************************************************/
 // Return index if found, false if not found
 function taxonLevelExists(taxonLevelName, tree) {
-  return taxonsByName[taxonLevelName] ? true:false
-
-  // tree param not used
-
-  // var found = false
-  // tree.forEach(function(treeItem, i) {
-  //   if (taxonLevelName === treeItem.name) {
-  //     found = i
-  //   }
-  // })
-  // return found
+  // return taxonsByName[taxonLevelName] ? true:false
+  var found = false
+  tree.forEach(function(treeItem, i) {
+    if (taxonLevelName === treeItem.name) {
+      found = i
+    }
+  })
+  return found
 }
 
 /***  CJ Magic below this line  ***/
-function CJ_magick() {
-  var taxonsByName = {}
-  //DO STUFF
-  var chordataTree = Object.keys(taxonsByName).map(function(name){ return taxonsByName[name] })
-}
+// function CJ_magick() {
+//   var taxonsByName = {}
+//   //DO STUFF
+//   var chordataTree = Object.keys(taxonsByName).map(function(name){ return taxonsByName[name] })
+// }
