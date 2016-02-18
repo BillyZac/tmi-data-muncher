@@ -78,6 +78,7 @@ fs.readFile(sourceFile, 'utf-8', function(err, data) {
     var speciesTree = genusTree[indexOfGenus].children
     var newSpecies = {
       "taxonRank": "species",
+      "taxonId": organism.taxonID, 
       "name": organism.specificEpithet,
       "description": organism.description,
       "references": organism.references
