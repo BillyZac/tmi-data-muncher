@@ -1,7 +1,9 @@
+// Refactoring in process based on CJ's advice. See especially the very bottom.
+
 var fs = require('fs')
 
 var sourceFile = './output/taxa.json'
-
+var taxonsByName = {}
 
 fs.readFile(sourceFile, 'utf-8', function(err, data) {
   if (err) throw err
@@ -9,7 +11,7 @@ fs.readFile(sourceFile, 'utf-8', function(err, data) {
   var chordataTree = []
   var organismsArray = JSON.parse(data)
   var numberOfOrganismsToProcess = organismsArray.length
-  // var numberOfOrganismsToProcess = 100
+  var numberOfOrganismsToProcess = 100
 
   // organismsArray.forEach(function(organism, i) {
   for (var i=0; i<numberOfOrganismsToProcess; i++) {
@@ -27,14 +29,16 @@ fs.readFile(sourceFile, 'utf-8', function(err, data) {
         "name": organismsArray[i].class, // use organism.class?
         "children": []
       }
+      taxonsByName[organism.class] = newClass
       chordataTree.push(newClass)
     }
     // Get the index of the class
-    indexOfClass = taxonLevelExists(organism.class, chordataTree)
+    // indexOfClass = taxonLevelExists(organism.class, chordataTree)
 
     /*** ORDER ***/
     // Create the Order if it does not exist
-    var orderTree = chordataTree[indexOfClass].children
+    // var orderTree = chordataTree[indexOfClass].children
+    var orderTree = taxonsByName[organism.class].children
     if (!taxonLevelExists(organism.order, orderTree)) {
       var newOrder = {
         "taxonRank": "order",
@@ -82,7 +86,6 @@ fs.readFile(sourceFile, 'utf-8', function(err, data) {
     }
     speciesTree.push(newSpecies)
 
-
   } // end for loop
 
   var root = {
@@ -95,24 +98,27 @@ fs.readFile(sourceFile, 'utf-8', function(err, data) {
 })
 
 
+
+
 /****************************************************************************/
 // Return index if found, false if not found
 function taxonLevelExists(taxonLevelName, tree) {
-  var found = false
-  tree.forEach(function(treeItem, i) {
-    if (taxonLevelName === treeItem.name) {
-      found = i
-    }
-  })
-  return found
+  return taxonsByName[taxonLevelName] ? true:false
+
+  // tree param not used
+
+  // var found = false
+  // tree.forEach(function(treeItem, i) {
+  //   if (taxonLevelName === treeItem.name) {
+  //     found = i
+  //   }
+  // })
+  // return found
 }
 
-function limitedTaxonLevelExists(taxonLevelName, tree) {
-  var found = false
-  tree.forEach(function(treeItem, i) {
-    if (taxonLevelName === treeItem.name) {
-      found = i
-    }
-  })
-  return found
+/***  CJ Magic below this line  ***/
+function CJ_magick() {
+  var taxonsByName = {}
+  //DO STUFF
+  var chordataTree = Object.keys(taxonsByName).map(function(name){ return taxonsByName[name] })
 }
