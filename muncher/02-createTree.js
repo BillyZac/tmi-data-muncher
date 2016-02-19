@@ -1,3 +1,8 @@
+// var numberOfOrganismsToProcess = organismsArray.length
+var numberOfOrganismsToProcess = 2000
+
+/********************************/
+
 var fs = require('fs')
 
 var sourceFile = './output/taxa.json'
@@ -8,8 +13,8 @@ fs.readFile(sourceFile, 'utf-8', function(err, data) {
 
   var chordataTree = []
   var organismsArray = JSON.parse(data)
-  // var numberOfOrganismsToProcess = organismsArray.length
-  var numberOfOrganismsToProcess = 13
+
+  var organismsCount = 0 // Count how many organisms make it into the final data
 
   // organismsArray.forEach(function(organism, i) {
   for (var i=0; i<numberOfOrganismsToProcess; i++) {
@@ -19,76 +24,93 @@ fs.readFile(sourceFile, 'utf-8', function(err, data) {
         indexOfGenus
     var organism = organismsArray[i]
 
-    /*** CLASS ***/
-    // Create the Class if it does not exist
-    if (!taxonLevelExists(organism.class, chordataTree)) {
-      var newClass = {
-        "taxonRank": "class",
-        "name": organismsArray[i].class, // use organism.class?
-        "children": []
+    if (organism.description) {
+      /*** CLASS ***/
+      // Create the Class if it does not exist
+      if (!taxonLevelExists(organism.class, chordataTree)) {
+        var newClass = {
+          "taxonRank": "class",
+          "name": organismsArray[i].class, // use organism.class?
+          "children": []
+        }
+        taxonsByName[organism.class] = newClass
+        chordataTree.push(newClass)
       }
-      taxonsByName[organism.class] = newClass
-      chordataTree.push(newClass)
-    }
-    // Get the index of the class
-    // indexOfClass = taxonLevelExists(organism.class, chordataTree)
+      // Get the index of the class
+      // indexOfClass = taxonLevelExists(organism.class, chordataTree)
 
-    /*** ORDER ***/
-    // Create the Order if it does not exist
-    // var orderTree = chordataTree[indexOfClass].children
-    var orderTree = taxonsByName[organism.class].children
-    if (!taxonLevelExists(organism.order, orderTree)) {
-      var newOrder = {
-        "taxonRank": "order",
-        "name": organism.order,
-        "children": []
+      /*** ORDER ***/
+      // Create the Order if it does not exist
+      // var orderTree = chordataTree[indexOfClass].children
+      var orderTree = taxonsByName[organism.class].children
+      if (!taxonLevelExists(organism.order, orderTree)) {
+        var newOrder = {
+          "taxonRank": "order",
+          "name": organism.order,
+          "children": []
+        }
+        orderTree.push(newOrder)
       }
-      orderTree.push(newOrder)
-    }
-    // Get the index of the family
-    indexOfOrder = taxonLevelExists(organism.order, orderTree)
+      // Get the index of the family
+      indexOfOrder = taxonLevelExists(organism.order, orderTree)
 
-    /*** FAMILY ***/
-    // Create the Family if it does not exist
-    var familyTree = orderTree[indexOfOrder].children
-    if (!taxonLevelExists(organism.family, familyTree)) {
-      var newFamily = {
-        "taxonRank": "family",
-        "name": organism.family,
-        "children": []
+      /*** FAMILY ***/
+      // Create the Family if it does not exist
+      var familyTree = orderTree[indexOfOrder].children
+      if (!taxonLevelExists(organism.family, familyTree)) {
+        var newFamily = {
+          "taxonRank": "family",
+          "name": organism.family,
+          "children": []
+        }
+        familyTree.push(newFamily)
       }
-      familyTree.push(newFamily)
-    }
-    // Get the index of the family
-    indexOfFamily = taxonLevelExists(organism.family, familyTree)
+      // Get the index of the family
+      indexOfFamily = taxonLevelExists(organism.family, familyTree)
 
-    /*** GENUS ***/
-    var genusTree = familyTree[indexOfFamily].children
-    if (!taxonLevelExists(organism.genus, genusTree)) {
-      var newGenus = {
-        "taxonRank": "genus",
-        "name": organism.genus,
-        "children": []
+      /*** GENUS ***/
+      var genusTree = familyTree[indexOfFamily].children
+      if (!taxonLevelExists(organism.genus, genusTree)) {
+        var newGenus = {
+          "taxonRank": "genus",
+          "name": organism.genus,
+          "children": []
+        }
+        genusTree.push(newGenus)
       }
-      genusTree.push(newGenus)
-    }
-    indexOfGenus = taxonLevelExists(organism.genus, genusTree)
+      indexOfGenus = taxonLevelExists(organism.genus, genusTree)
 
-    /*** SPECIES ***/
-    var speciesTree = genusTree[indexOfGenus].children
-    var newSpecies = {
-      "taxonRank": "species",
-      "taxonId": organism.taxonID, 
-      "name": organism.specificEpithet,
-      "description": organism.description,
-      "references": organism.references
+      /*** SPECIES ***/
+      var speciesTree = genusTree[indexOfGenus].children
+      var newSpecies = {
+        "taxonRank": "species",
+        "taxonId": organism.taxonID,
+        "name": organism.genus + '-' + organism.specificEpithet,
+        "description": organism.description,
+        "references": organism.references
+      }
+      speciesTree.push(newSpecies)
+      organismsCount++
     }
-    speciesTree.push(newSpecies)
-
   } // end for loop
 
-  // After the tree is built, write it to a file
-  fs.writeFile('./output/tree-' + numberOfOrganismsToProcess + '.json', JSON.stringify(chordataTree))
+  // After the tree is built, wrap it in the chordata phylum
+  var root = {
+    taxonRank: 'phylum',
+    name: 'chordates',
+    children: chordataTree
+  }
+
+  // Write it to a file
+  var fileName = './output/tree-' + numberOfOrganismsToProcess + '.json'
+  fs.writeFile(fileName, JSON.stringify(root))
+
+  // Report on the status of the script:
+  console.log('==========================================');
+  console.log('Organisms processed:', numberOfOrganismsToProcess)
+  console.log('Saved to file:', organismsCount)
+  console.log('File name:', fileName)
+  console.log('==========================================');
 })
 
 
